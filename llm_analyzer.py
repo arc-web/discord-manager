@@ -9,19 +9,34 @@ from typing import Optional
 
 import requests
 
-ANALYSIS_PROMPT = """You are analyzing Discord messages for Mike, the founder of Advertising Report Card (an ads agency).
+AGENT_DIR = Path(__file__).parent
+DEFAULT_ROLE = "Mike, the founder of Advertising Report Card (an ads agency)"
+
+
+def load_soul(server_name: str) -> Optional[str]:
+    """Load personality soul doc for a server if available."""
+    if not server_name:
+        return None
+    soul_path = AGENT_DIR / "souls" / f"{server_name}_soul.md"
+    if soul_path.exists():
+        return soul_path.read_text()
+    return None
+
+DEFAULT_TEAM_CONTEXT = """- Mike (advertisingreportcard) - owner, the person reading this report
+- Johan_l (johannnn_0l) - operator, configures AI agents
+- Erfan (erfanalisiam_00984) - PPC/ads team
+- Shakil, DNCesar, OllyUp, tim - team members
+- OpenClaw, ZeroClaw - AI bots (ignore their automated posts unless they flag a real issue)"""
+
+ANALYSIS_PROMPT = """You are analyzing Discord messages for {role}.
 
 CHANNELS AND MESSAGES:
 {channel_blocks}
 
 TEAM MEMBERS:
-- Mike (advertisingreportcard) - owner, the person reading this report
-- Johan_l (johannnn_0l) - operator, configures AI agents
-- Erfan (erfanalisiam_00984) - PPC/ads team
-- Shakil, DNCesar, OllyUp, tim - team members
-- OpenClaw, ZeroClaw - AI bots (ignore their automated posts unless they flag a real issue)
+{team_context}
 
-Return a JSON array. One object per channel that needs Mike's attention. If a channel has no actionable items, skip it entirely.
+Return a JSON array. One object per channel that needs attention. If a channel has no actionable items, skip it entirely.
 
 [
   {{
@@ -31,8 +46,8 @@ Return a JSON array. One object per channel that needs Mike's attention. If a ch
       {{
         "from": "author display name",
         "message": "key quote or description (under 100 chars)",
-        "action_needed": "what Mike should do",
-        "draft": "ready-to-send response in Mike's voice (direct, no corporate tone)",
+        "action_needed": "what should be done",
+        "draft": "ready-to-send response (direct, no corporate tone)",
         "priority": "high/medium/low"
       }}
     ]
@@ -40,9 +55,9 @@ Return a JSON array. One object per channel that needs Mike's attention. If a ch
 ]
 
 Rules:
-- Only include channels where a human needs a response, decision, or acknowledgment from Mike
+- Only include channels where a human needs a response, decision, or acknowledgment
 - high = blocking someone or client-facing, medium = needs input soon, low = FYI/acknowledge
-- Draft responses: direct, concise, Mike's natural voice. Not formal.
+- Draft responses: direct, concise, natural voice. Not formal.
 - Return valid JSON array only. No markdown wrapping. No explanation text."""
 
 
@@ -131,9 +146,17 @@ class LLMAnalyzer:
 
         return None
 
-    def analyze(self, channel_messages: dict) -> list[dict]:
+    def analyze(
+        self,
+        channel_messages: dict[str, str],
+        role: str = None,
+        team_context: str = None,
+        server_name: str = None,
+    ) -> list[dict]:
         """Analyze messages from multiple channels in one call.
         channel_messages: {channel_name: formatted_message_string}
+        role: who is reading (defaults to Mike/ARC)
+        team_context: team member list (defaults to ARC team)
         Returns list of channel analysis dicts."""
         if not self.backend:
             print("Error: No LLM available (Ollama not running, no Anthropic key found)")
@@ -148,7 +171,17 @@ class LLMAnalyzer:
         if not channel_blocks.strip():
             return []
 
-        prompt = ANALYSIS_PROMPT.format(channel_blocks=channel_blocks)
+        # Use soul doc for voice if available
+        effective_role = role
+        if not effective_role:
+            soul = load_soul(server_name)
+            effective_role = soul if soul else DEFAULT_ROLE
+
+        prompt = ANALYSIS_PROMPT.format(
+            channel_blocks=channel_blocks,
+            role=effective_role,
+            team_context=team_context or DEFAULT_TEAM_CONTEXT,
+        )
 
         if self.backend == "ollama":
             return self._call_ollama(prompt)

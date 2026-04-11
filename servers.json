@@ -1,0 +1,81 @@
+{
+  "default": "arc",
+  "servers": {
+    "arc": {
+      "guild_id": "1264976257888551045",
+      "bot_id": "1475745144912220311",
+      "env_file": "bot.env",
+      "aliases": {
+        "agents": "1475741313956843643",
+        "agents-ops": "1485448423225167892",
+        "agents-integrations": "1485448423175098398",
+        "agents-team": "1485448423401459893",
+        "agents-business": "1485448423527419964",
+        "sfbayareamoving": "1478284209423384657",
+        "fdlxibalba": "1478284208052113509",
+        "proximahire": "1478284208764882965",
+        "collabmedspa": "1478284207498334228",
+        "co-bpm-awainsurance": "1478284242927620247",
+        "co-bpm-napleton": "1486062798311133364",
+        "co-moonraker-brainbasedemdr": "1478284243615354982",
+        "co-moonraker-nkpsych": "1478284244114739313",
+        "co-moonraker-pittsburghcit": "1478284245150597133",
+        "co-moonraker-fulltiltautobody": "1483024489326579752",
+        "co-drivenstack-myexpertresume": "1483024533156794428",
+        "co-moonraker-skytherapies": "1484057668472799384",
+        "co-moonraker-mccancemethod": "1485636234872357055",
+        "general": "1264976266084352205",
+        "alert": "1477586864926883961",
+        "ai": "1478284164250865777",
+        "ai-openclaw": "1478284164993388726",
+        "team-ppc": "1483024901265952830",
+        "n8n-general": "1478284171972575275"
+      }
+    },
+    "stackpack": {
+      "guild_id": "1392196836378542162",
+      "bot_id": "1492471281319415949",
+      "env_file": "stackpack.env",
+      "aliases": {
+        "general": "1484798425282252811",
+        "announcements": "1485482761555804201",
+        "new-members": "1484795140752150669",
+        "setup": "1484794023846744115",
+        "agents": "1486927281481056297",
+        "agents-dev": "1485482761710997514",
+        "agents-integrations": "1485482761346093239",
+        "agents-ops": "1485482761329315862",
+        "api": "1491940643851735060",
+        "claude-code": "1486610238336667728",
+        "deployments": "1485482761358803046",
+        "discord": "1485477648867004586",
+        "github": "1488031632190341180",
+        "llms": "1484928051748929627",
+        "security": "1489540024100720640",
+        "stackpack": "1491083919133769888",
+        "sp-marketing": "1491368339103158282",
+        "tasks": "1484790935907995728",
+        "todovibes": "1488031694647857282",
+        "projects": "1484798244633444416",
+        "project-management": "1486935479826911272",
+        "content-generator": "1485523668393005206",
+        "tools": "1486610133495844874"
+      }
+    },
+    "conference": {
+      "guild_id": "1491955391792414841",
+      "env_file": "conference.env",
+      "aliases": {
+        "general": "1491955393440514160",
+        "introductions": "1492021146441486488",
+        "resources": "1491997416378073089",
+        "pod-a": "1491996660383879269",
+        "pod-b": "1491996680730443927",
+        "pod-c": "1491996702557606068",
+        "pod-d": "1491996723654950953",
+        "pod-e": "1491996745930899647",
+        "pod-f": "1491996796409352494"
+      }
+    }
+  }
+}

@@ -15,7 +15,7 @@ from typing import Optional
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from discord_api import DiscordClient, CHANNELS, BOT_IDS
+from discord_api import DiscordClient, BOT_IDS
 from llm_analyzer import LLMAnalyzer
 
 
@@ -53,7 +53,7 @@ def format_report(channel_analyses: list[dict]) -> tuple[str, list]:
         for item in analysis.get("items", []):
             items.append({
                 "channel": channel,
-                "channel_id": CHANNELS.get(channel, channel),
+                "channel_id": channel,  # resolved at send time
                 "from": item.get("from", "?"),
                 "message": item.get("message", ""),
                 "draft": item.get("draft", ""),
@@ -111,11 +111,18 @@ def parse_approval_input(user_input: str, total: int) -> Optional[list[int]]:
 
 
 def main():
+    # Support --server / -s flag
+    server_name = None
+    args = sys.argv[1:]
+    if args and args[0] in ("-s", "--server") and len(args) > 1:
+        server_name = args[1]
+
     print("Discord Channel Report")
     print("======================\n")
 
     # Init Discord client
-    discord = DiscordClient()
+    discord = DiscordClient(server_name=server_name)
+    print(f"  Server: {discord.server_name}")
     print(f"  Bot: {discord.bot_id}")
 
     # Init LLM
@@ -126,7 +133,8 @@ def main():
         print("  - Or set ANTHROPIC_API_KEY in env")
         sys.exit(1)
     print(f"  LLM: {analyzer.backend}" + (f" ({analyzer.ollama_model})" if analyzer.backend == "ollama" else ""))
-    print(f"\n  Scanning {len(CHANNELS)} channels...\n")
+    channel_map = discord.get_channel_map()
+    print(f"\n  Scanning {len(channel_map)} channels...\n")
 
     # Fetch all channel messages
     all_messages = discord.fetch_all_channels(limit=20, delay=0.3)
@@ -187,7 +195,7 @@ def main():
     # Send approved drafts
     for idx in approved:
         item = items[idx - 1]
-        channel_id = item["channel_id"]
+        channel_id = discord.resolve_channel(item["channel_id"])
         draft = item["draft"]
         print(f"\n  Sending to #{item['channel']}...", end=" ")
         if discord.send_message(channel_id, draft):
