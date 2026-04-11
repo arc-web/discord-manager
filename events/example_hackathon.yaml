@@ -1,0 +1,50 @@
+# Example event config - copy and customize for your event
+# All ${VAR} references are resolved from environment variables at load time
+
+server: your_server_name  # Must match a server in servers.json
+name: "Your Event Name"
+facilitators:
+  - Facilitator One
+  - Facilitator Two
+
+# Roster - where to find the participant list
+roster:
+  source: ./events/your_roster.csv
+  format: csv  # csv or json
+
+# Pod configuration - how to split participants into groups
+pods:
+  count: 3
+  names: [alpha, beta, gamma]
+  strategy: balanced  # balanced, random, or manual
+  balance_by: experience_level  # field from roster to balance on
+  min_size: 3
+  max_size: 8
+
+# Credentials distributed to pods (use env var references)
+credentials:
+  api_keys:
+    alpha: ${EVENT_API_KEY_ALPHA}
+    beta: ${EVENT_API_KEY_BETA}
+    gamma: ${EVENT_API_KEY_GAMMA}
+
+# Timed schedule entries
+schedule:
+  - time: "10:00"
+    action: announce
+    message: "Welcome! Head to your pod channel to get started."
+  - time: "12:00"
+    action: announce
+    message: "Halfway point - keep building!"
+  - time: "13:45"
+    action: countdown
+    minutes: 15
+    message: "15 minutes remaining!"
+
+# IT support settings
+it_support:
+  auto_scan_interval: 300  # seconds between automatic issue scans
+  platforms:
+    - mac
+    - windows
+  non_coder_mode: false  # simplified instructions for non-technical users

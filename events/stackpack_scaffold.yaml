@@ -1,0 +1,38 @@
+categories:
+  - name: COMMUNITY
+    channels:
+      - name: announcements
+        topic: "Updates from Mike. Read-only for members."
+      - name: general
+        topic: "Main hangout. Talk about anything."
+      - name: introductions
+        topic: "Who are you and what do you build?"
+      - name: wins
+        topic: "Ship something? Post it here."
+
+  - name: BUILDS & AGENTS
+    channels:
+      - name: showcase
+        topic: "Finished projects, demos, and screenshots."
+      - name: help
+        topic: "Stuck on something? Drop it here."
+      - name: collabs
+        topic: "Looking for partners or teaming up on a project."
+      - name: resources
+        topic: "Links, repos, and tools worth saving."
+
+  - name: TOOLS
+    channels:
+      - name: github-repos
+        topic: "Save and discover GitHub repos. One post per repo."
+      - name: claude-code
+        topic: "Prompts, tips, and setups for Claude Code."
+      - name: ai-tools
+        topic: "Everything else worth bookmarking."
+
+  - name: AGEX
+    channels:
+      - name: agex-general
+        topic: "AGEX collaboration - Mike & Hayley only."
+      - name: agex-tasks
+        topic: "AGEX task tracking."

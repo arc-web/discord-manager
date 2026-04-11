@@ -1,0 +1,99 @@
+fixes:
+  - id: win_export
+    platform: windows
+    error_pattern: "export.*not recognized|export.*is not a cmdlet"
+    description: "Windows uses $env: instead of export"
+    fix_template: |
+      You're on Windows! Use this instead:
+      ```
+      $env:{{VAR_NAME}}="{{VAR_VALUE}}"
+      ```
+
+  - id: win_unset
+    platform: windows
+    error_pattern: "unset.*not recognized"
+    description: "Windows uses Remove-Item Env: instead of unset"
+    fix_template: |
+      Use this on Windows:
+      ```
+      Remove-Item Env:{{VAR_NAME}}
+      ```
+
+  - id: win_path_claude
+    platform: windows
+    error_pattern: "claude.*not recognized.*cmdlet"
+    description: "Claude Code not in PATH after install"
+    fix_template: |
+      Claude Code installed but your terminal can't find it. Paste this:
+      ```
+      $env:Path += ";$env:USERPROFILE\.local\bin"
+      claude
+      ```
+
+  - id: win_execution_policy
+    platform: windows
+    error_pattern: "cannot be loaded because running scripts is disabled"
+    description: "PowerShell execution policy blocking npm"
+    fix_template: |
+      Your computer is blocking scripts. Paste this:
+      ```
+      Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+      ```
+      Type Y if it asks. Then try again.
+
+  - id: win_npm_missing
+    platform: windows
+    error_pattern: "npm.*not recognized"
+    description: "Node.js not installed"
+    fix_template: |
+      You need Node.js installed. Paste this:
+      ```
+      winget install OpenJS.NodeJS.LTS
+      ```
+      Type Y if it asks. When done, close and reopen your terminal, then try again.
+
+  - id: win_git_missing
+    platform: windows
+    error_pattern: "requires git-bash|git.*not recognized"
+    description: "Git not installed on Windows"
+    fix_template: |
+      You need Git installed. Paste this:
+      ```
+      winget install Git.Git
+      ```
+      When done, close and reopen your terminal, then try again.
+
+  - id: mac_xcode
+    platform: mac
+    error_pattern: "xcode-select.*no developer tools"
+    description: "Xcode Command Line Tools not installed"
+    fix_template: |
+      Your Mac needs developer tools. A popup should appear - click Install.
+      If no popup, paste this:
+      ```
+      xcode-select --install
+      ```
+      Wait for it to finish (big download), then try again.
+
+  - id: rate_limit
+    platform: all
+    error_pattern: "429.*rate_limit_error"
+    description: "API rate limit exceeded"
+    fix_template: |
+      Too many requests hitting the API key at once. Two options:
+      1. Wait 60 seconds and try again with a shorter prompt
+      2. Switch to your personal subscription (if you have one):
+      ```
+      /exit
+      ```
+      Then remove the API key and restart:
+      Mac: `unset ANTHROPIC_API_KEY`
+      Windows: `Remove-Item Env:ANTHROPIC_API_KEY`
+      Then: `claude` (it will ask you to log in with your account)
+
+  - id: win_winget_agree
+    platform: windows
+    error_pattern: "Do you agree to all the source agreements"
+    description: "Winget asking for agreement"
+    fix_template: |
+      It's asking if you agree. Type Y and press Enter.

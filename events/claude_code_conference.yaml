@@ -1,0 +1,54 @@
+server: conference
+name: "StellarPH x KMC Claude Code Conference"
+facilitators:
+  - Michael Ensor
+  - Pjotr Steinmetz
+
+roster:
+  source: ./events/conference_roster.csv
+  format: csv
+
+pods:
+  count: 4
+  names: [a, b, c, d]
+  strategy: balanced
+  balance_by: experience_level
+  min_size: 3
+  max_size: 6
+
+credentials:
+  api_keys:
+    pod_a: ${CONF_API_KEY_POD_A}
+    pod_b: ${CONF_API_KEY_POD_B}
+    pod_c: ${CONF_API_KEY_POD_C}
+    pod_d: ${CONF_API_KEY_POD_D}
+  github_pats:
+    pod_a: ${CONF_GITHUB_PAT_POD_A}
+    pod_b: ${CONF_GITHUB_PAT_POD_B}
+    pod_c: ${CONF_GITHUB_PAT_POD_C}
+    pod_d: ${CONF_GITHUB_PAT_POD_D}
+
+schedule:
+  - time: "09:00"
+    action: announce
+    message: "Welcome to the StellarPH x KMC Claude Code Conference! Check your pod channel for setup instructions."
+  - time: "09:15"
+    action: it_scan
+    message: "Running environment checks - hang tight while we make sure everyone is set up."
+  - time: "09:30"
+    action: announce
+    message: "Setup complete. Time to build! Head to your pod channel and start coding."
+  - time: "11:00"
+    action: announce
+    message: "Presentation prep starts now. Polish your project and prepare a 3-minute demo."
+  - time: "11:25"
+    action: countdown
+    minutes: 5
+    message: "5 minutes until presentations begin!"
+
+it_support:
+  auto_scan_interval: 300
+  platforms:
+    - mac
+    - windows
+  non_coder_mode: true
