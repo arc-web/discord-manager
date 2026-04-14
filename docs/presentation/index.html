@@ -133,117 +133,185 @@ blockquote::before { content:'\201C'; position:absolute; left:0; top:-10px; font
 <div id="slides">
 <div class="slide active" id="slide-1">
     
-    <div class="blob" style="width:494.1807567710589px;height:582.6320145469524px;background:var(--primary);top:-97.68490470462693px;left:-110.37866958428927px;opacity:0.07"></div>
-    <div class="blob" style="width:331.3792625983765px;height:366.30275079569105px;background:var(--accent);bottom:-82.6816545163022px;right:-52.85384394145602px;opacity:0.06"></div>
+    <div class="blob" style="width:444.7730841002265px;height:468.783018415344px;background:var(--primary);top:-105.2642840748556px;right:-89.22503889043477px;opacity:0.07"></div>
+    <div class="blob" style="width:399.1475777172955px;height:378.0697759750876px;background:var(--accent);bottom:-69.68946948724451px;right:-41.314928007174345px;opacity:0.06"></div>
     <div class="slide-content">
       <div class="hero-badge">ARC Web</div>
-      <h1>Discord Manager<br><span class="grad">Server Automation</span></h1>
-      <div class="sub">Manage Discord servers from the command line and via Claude Code — moderation, roles, channels, and community automation at scale.</div>
-      <div class="tags-row"><span class="tag">Python</span><span class="tag">Discord</span><span class="tag">Open Source</span></div>
+      <h1>Discord Manager<br><span class="grad">Python</span></h1>
+      <div class="sub"><a href="https://arc-web.github.io/discord-manager/"></div>
+      <div class="tags-row"><span class="tag">Python</span><span class="tag">Open Source</span></div>
     </div>
   </div>
 
 <div class="slide" id="slide-2">
     
-    <div class="blob" style="width:535.2343021118894px;height:454.00320834217695px;background:var(--primary);top:-83.88789074362182px;left:-73.53097490570607px;opacity:0.07"></div>
-    <div class="blob" style="width:348.24332403910034px;height:423.09688436671513px;background:var(--accent);bottom:-102.81589661530353px;left:-42.50748667749668px;opacity:0.06"></div>
+    <div class="blob" style="width:545.6221328021197px;height:540.2152062826474px;background:var(--primary);top:-140.04054819204543px;right:-97.88097812210125px;opacity:0.07"></div>
+    <div class="blob" style="width:330.37069583697064px;height:381.96142494532404px;background:var(--accent);bottom:-99.06080331502616px;right:-67.47695940515005px;opacity:0.06"></div>
     <div class="slide-content">
-      <div class="eyebrow">What it does</div>
-      <h2>Core <span class="grad">capabilities</span></h2>
+      <div class="eyebrow">The problem</div>
+      <h2>What's <span class="grad">broken</span> without this</h2>
       <div class="line"></div>
       <div class="cards">
     <div class="card">
-      <span class="card-icon">🛡️</span>
-      <div class="card-title">Server moderation</div>
-      <div class="card-desc">Ban, kick, mute members automatically. Scan for spam, enforce rules, handle appeals — all configurable without coding.</div>
+      <span class="card-icon">🔐</span>
+      <div class="card-title">Discord API calls need VPS</div>
+      <div class="card-desc">Managing a Discord server typically requires hosting a bot on a server, adding infrastructure costs and deployment complexity.</div>
     </div>
     <div class="card">
-      <span class="card-icon">👥</span>
-      <div class="card-title">Role & member management</div>
-      <div class="card-desc">Assign roles in bulk, manage permissions, track member profiles, audit who has what access.</div>
+      <span class="card-icon">📋</span>
+      <div class="card-title">Manual channel monitoring</div>
+      <div class="card-desc">Tracking messages across 25 channels and drafting responses manually takes hours each cycle and is error-prone.</div>
     </div>
     <div class="card">
-      <span class="card-icon">📢</span>
-      <div class="card-title">Channel orchestration</div>
-      <div class="card-desc">Create channels, set up category structures, manage pinned messages, organize by purpose.</div>
-    </div>
-    <div class="card">
-      <span class="card-icon">⏱️</span>
-      <div class="card-title">Scheduled tasks</div>
-      <div class="card-desc">Run announcements at specific times, rotate roles, clean up inactive channels, backup community data.</div>
+      <span class="card-icon">🔌</span>
+      <div class="card-title">No local Discord tooling</div>
+      <div class="card-desc">Most Discord management requires web dashboards or third-party bots, with no way to integrate into local development workflows.</div>
     </div></div>
     </div>
   </div>
 
 <div class="slide" id="slide-3">
     
-    <div class="blob" style="width:586.1110278779687px;height:430.11159531236007px;background:var(--primary);top:-90.78698077108052px;left:-75.09901552819376px;opacity:0.07"></div>
-    <div class="blob" style="width:300.1956311825394px;height:431.54925634619417px;background:var(--accent);bottom:-73.96716253603687px;right:-64.25413028518975px;opacity:0.06"></div>
+    <div class="blob" style="width:564.7243616213266px;height:567.0185246309288px;background:var(--primary);top:-159.14031007094303px;right:-102.51660772809382px;opacity:0.07"></div>
+    <div class="blob" style="width:364.8408659729444px;height:400.2424378545352px;background:var(--accent);bottom:-110.61813405537868px;left:-74.48276464519935px;opacity:0.06"></div>
     <div class="slide-content">
-      <div class="eyebrow">Who uses it</div>
-      <h2>Real-world <span class="grad">use cases</span></h2>
-      <div class="line"></div>
-      <div class="cards">
-    <div class="card">
-      <span class="card-icon">👨‍💼</span>
-      <div class="card-title">Community leaders</div>
-      <div class="card-desc">Large Discord servers need consistent moderation. This tool enforces rules, reduces manual work, scales with your community.</div>
+      <div class="eyebrow">The difference</div>
+      <h2>Why it <span class="grad">matters</span></h2>
+      
+      <div class="compare">
+        <div class="compare-col bad">
+      <div class="compare-head"><span class="cross">✗</span> Without</div>
+      <div class="compare-item">Manual work</div><div class="compare-item">Slow iteration</div><div class="compare-item">Repeated mistakes</div>
     </div>
-    <div class="card">
-      <span class="card-icon">🤖</span>
-      <div class="card-title">Bot developers</div>
-      <div class="card-desc">Build more complex automation on top — this gives you the foundation for member management and server health.</div>
+        <div class="compare-col good">
+      <div class="compare-head"><span class="check">✓</span> With this</div>
+      <div class="compare-item">Runs locally without VPS—bot token executes REST calls directly from your machine</div><div class="compare-item">Scans 25 channels in one command and batches Claude analysis instead of per-message API calls</div><div class="compare-item">CLI-first workflow integrates with shell scripts and cron jobs, not just web dashboards</div>
     </div>
-    <div class="card">
-      <span class="card-icon">📊</span>
-      <div class="card-title">Data-driven moderation</div>
-      <div class="card-desc">See who's active, who's inactive, what channels are used, where problems are — data informs decisions.</div>
-    </div></div>
+      </div>
     </div>
   </div>
 
 <div class="slide" id="slide-4">
     
-    <div class="blob" style="width:538.7326540998058px;height:541.7466312434062px;background:var(--primary);top:-87.54064667463228px;left:-77.47427882427223px;opacity:0.07"></div>
-    <div class="blob" style="width:391.6287619279169px;height:443.7662268780423px;background:var(--accent);bottom:-100.90294919138736px;right:-41.506794118290664px;opacity:0.06"></div>
+    <div class="blob" style="width:405.1889467087369px;height:465.69603812093544px;background:var(--primary);top:-82.21773466735306px;right:-110.546768387355px;opacity:0.07"></div>
+    <div class="blob" style="width:407.50173688107526px;height:344.17046017648056px;background:var(--accent);bottom:-109.99993916535813px;right:-62.273636389317225px;opacity:0.06"></div>
     <div class="slide-content">
-      <div class="eyebrow">Get started</div>
-      <h2>Up and running <span class="grad">fast</span></h2>
+      <div class="eyebrow">Under the hood</div>
+      <h2>How it <span class="grad">works</span></h2>
       
-      <div class="steps">
-    <div class="step">
-      <div class="step-num">1</div>
-      <div class="step-text"><strong>Create a Discord bot</strong> - Register on Discord Developer Portal, create an app, get your bot token.</div>
+      <div class="flow">
+    <div class="flow-step">
+      <div class="flow-icon" style="background:rgba(123,47,190,0.12);border:1px solid rgba(123,47,190,0.2)">📥</div>
+      <div class="flow-body">
+        <div class="flow-title">Scan all channels</div>
+        <div class="flow-desc">User runs discord_report.py, which fetches recent messages from all 25 configured channels using the bot token.</div>
+        
+      </div>
     </div>
-    <div class="step">
-      <div class="step-num">2</div>
-      <div class="step-text"><strong>Install the manager</strong> - Clone the repo, install Python dependencies, save your bot token in .env.</div>
+    <div class="flow-step">
+      <div class="flow-icon" style="background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.2)">⚙️</div>
+      <div class="flow-body">
+        <div class="flow-title">Claude drafts responses</div>
+        <div class="flow-desc">The Anthropic API analyzes each message and generates contextual replies based on channel purpose and conversation history.</div>
+        
+      </div>
     </div>
-    <div class="step">
-      <div class="step-num">3</div>
-      <div class="step-text"><strong>Configure rules</strong> - Define your moderation rules in config.json — who can ban, what triggers warnings, role assignment logic.</div>
-    </div>
-    <div class="step">
-      <div class="step-num">4</div>
-      <div class="step-text"><strong>Deploy & monitor</strong> - Run the bot in your server. Use CLI commands or Claude Code to trigger actions and review logs.</div>
+    <div class="flow-step">
+      <div class="flow-icon" style="background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.2)">✅</div>
+      <div class="flow-body">
+        <div class="flow-title">Approve and send</div>
+        <div class="flow-desc">User reviews the numbered draft list, selects which responses to send (e.g. '1,3'), and discord.sh posts them immediately.</div>
+        
+      </div>
     </div></div>
     </div>
   </div>
 
 <div class="slide" id="slide-5">
     
-    <div class="blob" style="width:435.9676154050027px;height:404.72596004908127px;background:var(--primary);top:-125.33370707475993px;right:-98.3391779698738px;opacity:0.07"></div>
-    <div class="blob" style="width:416.07441472570076px;height:342.94463708860053px;background:var(--accent);bottom:-106.34991854153083px;right:-62.02744657483491px;opacity:0.06"></div>
+    <div class="blob" style="width:422.0075567537985px;height:555.4576475501938px;background:var(--primary);top:-106.3598781284766px;left:-91.9804207966614px;opacity:0.07"></div>
+    <div class="blob" style="width:363.2892584242934px;height:307.74366100870213px;background:var(--accent);bottom:-74.70255641896854px;left:-62.423737033959085px;opacity:0.06"></div>
     <div class="slide-content">
-      <blockquote>Moderation at <span class="grad">scale</span>. Your Discord server runs <span class="grad">itself</span>.</blockquote>
+      <div class="eyebrow">What it does</div>
+      <h2>Core <span class="grad">capabilities</span></h2>
+      <div class="line"></div>
+      <div class="cards">
+    <div class="card">
+      <span class="card-icon">⚡</span>
+      <div class="card-title">Fast</div>
+      <div class="card-desc">Optimized for speed and efficiency.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🎯</span>
+      <div class="card-title">Reliable</div>
+      <div class="card-desc">Built to work consistently.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🔌</span>
+      <div class="card-title">Integrates</div>
+      <div class="card-desc">Works with your existing tools.</div>
+    </div></div>
+    </div>
+  </div>
+
+<div class="slide" id="slide-6">
+    
+    <div class="blob" style="width:525.6063432731795px;height:539.5466713100454px;background:var(--primary);top:-118.2727757144398px;left:-93.69258331044122px;opacity:0.07"></div>
+    <div class="blob" style="width:388.0223480671608px;height:316.49036448398925px;background:var(--accent);bottom:-84.99987514830232px;right:-49.805452321335345px;opacity:0.06"></div>
+    <div class="slide-content">
+      <blockquote>I can monitor our entire Discord server and draft responses from my terminal without running a bot on a server.</blockquote>
       <div class="line" style="margin-top:48px"></div>
       <div class="sub">arc-web/discord-manager</div>
+    </div>
+  </div>
+
+<div class="slide" id="slide-7">
+    
+    <div class="blob" style="width:517.972769647748px;height:512.658267649967px;background:var(--primary);top:-135.32842361361278px;right:-88.94118774752795px;opacity:0.07"></div>
+    <div class="blob" style="width:321.4620036469459px;height:346.7340063374171px;background:var(--accent);bottom:-92.02136199893157px;left:-58.76915067433129px;opacity:0.06"></div>
+    <div class="slide-content">
+      <div class="eyebrow">Codebase</div>
+      <h2>Built with <span class="grad">care</span></h2>
+      <div class="line"></div>
+      <div class="cards">
+    <div class="card">
+      <span class="card-icon">💻</span>
+      <div class="card-title">Python</div>
+      <div class="card-desc">Built in Python for type safety and reliability.</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🏗️</span>
+      <div class="card-title">Architecture</div>
+      <div class="card-desc">CLI Tool</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">📦</span>
+      <div class="card-title">Key deps</div>
+      <div class="card-desc">requests, anthropic, pyyaml</div>
+    </div>
+    <div class="card">
+      <span class="card-icon">🔓</span>
+      <div class="card-title">Open Source (MIT / PolyForm)</div>
+      <div class="card-desc">Fork it, extend it, ship it. It's yours.</div>
+    </div></div>
+    </div>
+  </div>
+
+<div class="slide" id="slide-8">
+    
+    <div class="blob" style="width:481.66772871357233px;height:575.2234206413909px;background:var(--primary);top:-81.34926365932257px;right:-107.75749927359092px;opacity:0.07"></div>
+    <div class="blob" style="width:374.1533549656783px;height:412.5299058798404px;background:var(--accent);bottom:-111.28953975638625px;left:-43.42469239944057px;opacity:0.06"></div>
+    <div class="slide-content">
+      <div class="eyebrow">Built by</div>
+      <h2>Mike Ensor<br><span class="grad">Arc Web</span></h2>
+      <div class="sub">AI automation, marketing technology, building tools that work.</div>
+      <div class="body-text">Mike builds open-source AI tools for agencies, marketers, and operators who are done waiting for software to catch up. All Arc Web projects are open source by default — fork them, extend them, ship them.</div>
     </div>
   </div>
 </div>
 
 <div id="nav"></div>
-<div id="counter">1 / 5</div>
+<div id="counter">1 / 8</div>
 <div id="hint">\u2190 \u2192 arrow keys to navigate</div>
 
 <script>
