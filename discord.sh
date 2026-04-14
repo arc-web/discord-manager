@@ -46,6 +46,22 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# Re-exec under `op run` to populate DISCORD_BOT_TOKEN from 1Password.
+# Template: .env.1p.<server> references op://ARC/Discord Bot Token - <name>/credential
+# Bypass: set DISCORD_OP_WRAPPED=1 to skip (e.g., if already wrapped by parent).
+if [[ -z "${DISCORD_OP_WRAPPED:-}" ]]; then
+  _effective_server="${SERVER_NAME:-arc}"
+  _env_template="$SCRIPT_DIR/.env.1p.$_effective_server"
+  if [[ ! -f "$_env_template" ]]; then
+    echo "Error: 1Password env template missing: $_env_template" >&2
+    echo "Available templates:" >&2
+    ls "$SCRIPT_DIR"/.env.1p.* 2>/dev/null | sed 's|^|  |' >&2
+    exit 1
+  fi
+  export DISCORD_OP_WRAPPED=1
+  exec op run --env-file="$_env_template" -- bash "$SCRIPT_DIR/discord.sh" ${SERVER_NAME:+-s "$SERVER_NAME"} "$@"
+fi
+
 # Load config via python helper
 _load_config() {
   local server_arg="${SERVER_NAME:-}"
