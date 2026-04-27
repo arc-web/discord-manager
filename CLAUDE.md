@@ -10,7 +10,7 @@ Mike speaks in plain English. I interpret intent and run the right tool.
 - Destructive actions (delete channel, DM blast to everyone) -> always confirm explicitly before running
 - When a server isn't specified, ask which one or default to the most recently discussed
 
-**Working directory:** `~/aimacpro/4_agents/discord_agent/`
+**Working directory:** `~/ai/agents/comms/discord_manager/`
 **Primary CLI:** `python3 community_ops.py <group> <action> --server <name>`
 **Low-level CLI:** `bash discord.sh [-s <server>] <command>`
 **Report tool:** `python3 discord_report.py [--server <name>]`

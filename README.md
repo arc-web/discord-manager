@@ -8,103 +8,162 @@
 
 ---
 
-# discord_agent
+# discord_manager
 
-Local Discord management for the Advertising Report Card server.
-Uses OpenClaw's bot token to call Discord REST API directly - no VPS dependency.
+Local Discord management across multiple servers (arc, stackpack, conference).
+Calls Discord REST API directly via per-server bot tokens. No VPS dependency.
 
 ## Files
 
-- `discord.sh` - CLI tool for all Discord operations (send, read, edit, channels, members, etc.)
-- `bot.env` - Bot token and guild config (chmod 600, never commit)
-- `server_docs.md` - Full server documentation (members, channels, categories, threads, timeline)
-- `discord_report.py` - Automated channel report tool (scans all channels, drafts responses for approval)
+- `discord.sh` - low-level CLI for raw Discord operations (send, read, edit, channels, members, etc.)
+- `community_ops.py` - high-level CLI for audits, channel management, events, engagement
+- `discord_report.py` - LLM-drafted channel scan with HITL approval before sending
+- `discord_api.py` - thin Python REST client wrapping Discord API v10
+- `llm_analyzer.py` - LLM provider chain (OpenRouter Gemini -> Kimi -> Ollama)
+- `config_loader.py` - per-server credential resolution via 1Password op_loader
+- `.env.1p.<server>` - per-server `op://` ref templates (no secrets, committable)
+- `bot.env` - active bot token + guild config (chmod 600, never commit)
+- `servers.json` - server registry
+- `souls/<server>_soul.md` - per-server personality docs for LLM drafts
+
+## Servers
+
+| Name | Bot | Default? |
+|------|-----|----------|
+| arc | OpenClaw | yes |
+| conference | claudeconference | no |
+| stackpack | StackPack.app | no |
 
 ## Usage
 
-### Manual Commands (discord.sh)
+### Low-level (discord.sh)
 
 ```bash
-# Via scripts alias
-discord.sh send agents "Hello"
-discord.sh read agents 5
-discord.sh channels
-
-# Direct
-./discord.sh whoami
-./discord.sh members
-./discord.sh roles
+discord.sh -s arc send agents "Hello"
+discord.sh -s stackpack read general 20
+discord.sh -s arc channels
+discord.sh -s arc whoami
+discord.sh -s conference members
 ```
 
-Run `discord.sh help` for all commands and channel aliases.
+`discord.sh help` for the full command list.
+
+### High-level (community_ops.py)
+
+```bash
+python3 community_ops.py audit activity --server arc --limit 7
+python3 community_ops.py audit lurkers --server stackpack
+python3 community_ops.py channels list --server arc
+python3 community_ops.py engage shoutout @user "great work"
+python3 community_ops.py event load events/conference.yaml
+```
+
+Full command reference in `CLAUDE.md`.
 
 ### Automated Report (discord_report.py)
 
-Scans all 25 channels, uses Claude to draft responses, presents approval list:
+Scans all channels with human activity, LLM-drafts responses, presents an approval list.
 
 ```bash
-export ANTHROPIC_API_KEY='your-key'
-python3 discord_report.py
+# Interactive (TTY)
+python3 discord_report.py --server arc
 
-# Or via wrapper script
-discord-report
+# Headless (no stdin) - send specific items / all / none
+python3 discord_report.py --server arc --approve "1,3"
+python3 discord_report.py --server arc --approve all
+python3 discord_report.py --server arc --dry-run
+
+# Force a provider
+python3 discord_report.py --server arc --provider gemini
+python3 discord_report.py --server arc --provider kimi
+python3 discord_report.py --server arc --provider ollama
 ```
 
-Channels scanned:
-- Agents (5): agents, agents-ops, agents-integrations, agents-team, agents-business
-- Clients (4): sfbayareamoving, fdlxibalba, proximahire, collabmedspa
-- Co-managed (9): BPM, Moonraker, DrivenStack clients
-- Team ops (5): general, alert, ai-openclaw, team-ppc, n8n-general
-
-Output format:
+Output:
 ```
-[1] 🔴 fdlxibalba — Erfan asking what to do next
-    MSG:  "Hey man, what should I do next..."
+[1] 🔴 #fdlxibalba - Erfan
+    MSG:   "Hey man, what should I do next..."
     DRAFT: "Good work on tracking. Next step is..."
+    ACTION: respond with next-step direction
 
-Send which drafts? (e.g. '1,3' or 'all' or 'none'): 1,3
+Send which drafts? (1,3 / all / none): 1,3
 ```
+
+## LLM Provider Chain
+
+`llm_analyzer.py` resolves backends in order based on `task_hint`:
+
+| task_hint | chain |
+|-----------|-------|
+| `chat` (default) | gemini -> kimi -> ollama |
+| `agentic` / `long_context` | kimi -> gemini -> ollama |
+
+Cloud calls go through OpenRouter (one key, two model IDs).
+
+- `google/gemini-2.5-flash` - daily report primary, ~$0.01/run
+- `moonshotai/kimi-k2.6` - agentic/long-context secondary, ~$0.02/run
+- Ollama (`qwen2.5:14b`) - local fallback, free, slow
+
+Anthropic excluded (Claude Code OAuth token is harness-only - 3rd-party use risks ban).
+
+Credential resolution (first hit wins):
+1. `OPENROUTER_API_KEY` env var
+2. `op://Zeroclaw/<uuid>/credential` via shared op_loader
+
+## Bot tokens
+
+Per-server tokens stored in `bot.env` / `<server>.env`. Loaded via `config_loader.py` from 1Password `op://` refs in `.env.1p.<server>`. Tokens never live in committed files.
 
 ---
 
 ## Versions
 
+**v1.1 - 2026-04-27**
+- Repo renamed `discord_agent` -> `discord_manager`, moved to `~/ai/agents/comms/discord_manager/`
+- Multi-server support (arc / stackpack / conference) via `--server` flag and per-server `.env.1p.*` templates
+- LLM layer rewritten: OpenRouter unified key, Gemini Flash primary, Kimi K2.6 secondary, Ollama fallback. Anthropic dropped.
+- `discord_report.py` headless flags: `--approve "1,3"|all|none`, `--dry-run`, `--provider`, `--task-hint`
+- `community_ops.py` high-level CLI for audits, engagement, events, channels
+- Per-server `souls/` for LLM personality
+
 **v1.0 - 2026-03-30**
-- `discord.sh` CLI - full Discord operations from terminal (send, read, edit, delete, pin, react, threads, members, roles)
-- `discord_api.py` - thin Python REST client wrapping Discord API v10
-- `discord_report.py` - automated channel report: scans 25 channels, LLM-drafts responses, approval loop before sending
-- `llm_analyzer.py` - Ollama-first LLM backend with Anthropic fallback, auto-discovers API keys
-- `server_docs.md` - full server documentation (members, channels, categories, active threads, timeline)
-- Bot token stored locally in `bot.env` - no VPS dependency
+- `discord.sh` CLI (send, read, edit, delete, pin, react, threads, members, roles)
+- `discord_api.py` REST client (Discord API v10)
+- `discord_report.py` LLM scan + approval loop
+- `llm_analyzer.py` Ollama-first / Anthropic fallback (deprecated in v1.1)
+- `server_docs.md` server documentation
+- Bot token in `bot.env`, no VPS
 
 ---
 
 ## What's Next
 
-Ideas for making Discord management smarter and more automated:
-
 **Automation**
-- Scheduled report - run `discord_report.py` on a cron (morning digest, end-of-day sweep) and push results to a summary channel
-- Auto-responder rules - define triggers (keywords, channels, authors) that fire a canned response without needing approval
-- Alert routing - watch specific channels and ping Mike via DM or the alert channel when high-priority keywords appear (e.g. "urgent", "blocked", "not working")
+- Scheduled report - cron `discord_report.py` (morning digest, EOD sweep), push results to a summary channel
+- Auto-responder rules - triggers (keywords, channels, authors) fire canned response without approval
+- Alert routing - watch channels, ping Mike via DM when high-priority keywords appear ("urgent", "blocked", "not working")
 
 **Member Activity**
-- `member_activity.py` - who is most active, message % share per member, last seen timestamps, response gap alerts, silent member detection
-- Engagement trends - week-over-week comparison showing who is ramping up or going quiet
-- Client health score - per-client channel activity rolled up into a single status (green/yellow/red) based on recency and volume
+- `member_activity.py` - most active, message %, last seen, response gaps, silent detection
+- Engagement trends - week-over-week ramp/quiet detection
+- Client health score - per-client rollup green/yellow/red on recency + volume
 
-**Intelligence**
-- Thread summarizer - auto-summarize long threads into a TL;DR pinned at the top
-- Unanswered question detector - scan for messages ending in `?` that never got a reply, surface them in the report
-- Sentiment tracking - flag channels where tone has shifted negative or frustration is rising
-- Client brief generator - pull the last 30 days of a client channel and generate a status brief (wins, blockers, next steps)
+**Intelligence (Kimi long-context)**
+- Thread summarizer - auto-summarize long threads into pinned TL;DR
+- Unanswered question detector - scan messages ending in `?` with no reply, surface in report
+- Sentiment tracking - flag tone shift / rising frustration
+- Client brief generator - 30-day channel pull -> status brief (wins, blockers, next steps)
 
 **Channel Management**
-- Bulk channel archiver - identify channels with zero activity for 30+ days, propose archiving them
-- Channel template creator - spin up a new client channel set (main + threads) from a standard template
-- Cross-channel search - search a keyword across all channels at once and return matches with context
+- Bulk archiver - identify zero-activity channels 30+ days, propose archive
+- Template creator - spin up new client channel set (main + threads) from template
+- Cross-channel search - keyword across all channels, return matches with context
 
 **Integrations**
-- n8n webhook - trigger report runs or send messages from n8n workflows
-- Airtable sync - log message activity and member stats to an Airtable base for tracking over time
-- Slack bridge - mirror critical alert channel messages to a Slack workspace
+- n8n webhook - trigger reports / send messages from n8n workflows
+- Airtable sync - log activity + member stats to Airtable
+- Slack bridge - mirror critical alert channel to Slack
+
+---
+
+_Last updated: 2026-04-27_

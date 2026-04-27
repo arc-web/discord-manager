@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Optional
 
 # Import shared credential helper
-_CREDS_DIR = Path(__file__).parent.parent.parent / "7_tools" / "credentials"
+_CREDS_DIR = Path.home() / "ai" / "workspaces" / "aimacpro" / "7_tools" / "credentials"
 sys.path.insert(0, str(_CREDS_DIR))
 from op_loader import load as _op_load  # noqa: E402
 
