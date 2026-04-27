@@ -1,13 +1,38 @@
 # discord_agent/llm_analyzer.py
-"""LLM analysis layer. Ollama first, Anthropic fallback."""
+"""LLM analysis layer.
+
+Provider chain:
+  - "auto" + task_hint="chat" (default) -> openrouter:gemini -> openrouter:kimi -> ollama
+  - "auto" + task_hint in ("agentic","long_context") -> openrouter:kimi -> openrouter:gemini -> ollama
+  - explicit provider= short-circuits to that provider only
+
+OpenRouter unified endpoint serves both Gemini Flash and Kimi K2.6 with one key.
+"""
 
 import json
 import os
 import re
+import sys
 from pathlib import Path
 from typing import Optional
 
 import requests
+
+# Reuse shared op_loader for 1Password resolution
+_CREDS_DIR = Path.home() / "ai" / "workspaces" / "aimacpro" / "7_tools" / "credentials"
+if str(_CREDS_DIR) not in sys.path:
+    sys.path.insert(0, str(_CREDS_DIR))
+try:
+    from op_loader import load as _op_load
+except ImportError:
+    _op_load = None
+
+OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+# UUID form because the item title contains an em-dash, which the op:// secret-reference
+# parser rejects. UUID resolves to "OpenRouter Key — Claude Code Local" in Zeroclaw vault.
+OPENROUTER_OP_REF = "op://Zeroclaw/qbmvnmef72w46iywjyt752zz2q/credential"
+MODEL_GEMINI_FLASH = "google/gemini-2.5-flash"
+MODEL_KIMI_K2 = "moonshotai/kimi-k2.6"
 
 AGENT_DIR = Path(__file__).parent
 DEFAULT_ROLE = "Mike, the founder of Advertising Report Card (an ads agency)"
@@ -97,54 +122,73 @@ def parse_analysis_json(raw: str) -> dict:
 
 
 class LLMAnalyzer:
-    def __init__(self):
+    def __init__(self, provider: str = "auto", task_hint: str = "chat"):
+        """provider: 'auto' | 'gemini' | 'kimi' | 'ollama'
+        task_hint: 'chat' | 'agentic' | 'long_context' (used when provider='auto')"""
+        self.provider_choice = provider
+        self.task_hint = task_hint
         self.ollama_model = None
-        self.anthropic_key = None
-        self.backend = self._detect_backend()
+        self.openrouter_key = None
+        self.backend = self._resolve_backend()
 
-    def _detect_backend(self) -> Optional[str]:
-        """Check Ollama first, then Anthropic."""
-        # Try Ollama
+    def _resolve_backend(self) -> Optional[str]:
+        """Resolve which backend to use based on provider/task_hint and availability."""
+        if self.provider_choice == "ollama":
+            return self._try_ollama()
+        if self.provider_choice == "gemini":
+            return "gemini" if self._try_openrouter() else None
+        if self.provider_choice == "kimi":
+            return "kimi" if self._try_openrouter() else None
+
+        # auto: build chain from task_hint
+        if self.task_hint in ("agentic", "long_context"):
+            chain = ["kimi", "gemini", "ollama"]
+        else:  # chat
+            chain = ["gemini", "kimi", "ollama"]
+
+        for backend in chain:
+            if backend in ("gemini", "kimi"):
+                if self._try_openrouter():
+                    return backend
+            elif backend == "ollama":
+                if self._try_ollama():
+                    return "ollama"
+        return None
+
+    def _try_openrouter(self) -> bool:
+        """Resolve OpenRouter key from env or 1Password. Returns True on success."""
+        if self.openrouter_key:
+            return True
+        key = None
+        if _op_load is not None:
+            try:
+                key = _op_load("OPENROUTER_API_KEY", OPENROUTER_OP_REF)
+            except Exception as e:
+                print(f"  op_loader: {e}")
+                key = None
+        if not key:
+            key = os.getenv("OPENROUTER_API_KEY")
+        if key:
+            self.openrouter_key = key.strip()
+            return True
+        return False
+
+    def _try_ollama(self) -> bool:
+        """Probe local Ollama, pick a model. Returns True on success."""
         try:
             resp = requests.get("http://localhost:11434/api/tags", timeout=2)
             if resp.status_code == 200:
                 models = [m["name"] for m in resp.json().get("models", [])]
-                # Prefer qwen2.5:14b, fall back to any available
                 for preferred in ["qwen2.5:14b", "qwen2.5:7b", "llama3.2"]:
                     if any(preferred in m for m in models):
                         self.ollama_model = preferred
-                        return "ollama"
+                        return True
                 if models:
                     self.ollama_model = models[0]
-                    return "ollama"
+                    return True
         except (requests.ConnectionError, requests.Timeout):
             pass
-
-        # Try Anthropic
-        api_key = self._find_anthropic_key()
-        if api_key:
-            self.anthropic_key = api_key
-            return "anthropic"
-
-        return None
-
-    def _find_anthropic_key(self) -> Optional[str]:
-        """Auto-discover Anthropic API key. No manual export needed."""
-        # Check env first
-        key = os.getenv("ANTHROPIC_API_KEY")
-        if key:
-            return key
-
-        # Check credentials.env
-        creds_path = Path.home() / "aimacpro" / "4_agents" / "authentication_agent" / "admin" / "credentials.env"
-        if creds_path.exists():
-            for line in creds_path.read_text().split("\n"):
-                if "sk-ant-api03" in line:
-                    match = re.search(r"(sk-ant-api03-\S+)", line)
-                    if match:
-                        return match.group(1)
-
-        return None
+        return False
 
     def analyze(
         self,
@@ -153,16 +197,11 @@ class LLMAnalyzer:
         team_context: str = None,
         server_name: str = None,
     ) -> list[dict]:
-        """Analyze messages from multiple channels in one call.
-        channel_messages: {channel_name: formatted_message_string}
-        role: who is reading (defaults to Mike/ARC)
-        team_context: team member list (defaults to ARC team)
-        Returns list of channel analysis dicts."""
+        """Analyze messages from multiple channels in one call."""
         if not self.backend:
-            print("Error: No LLM available (Ollama not running, no Anthropic key found)")
+            print("Error: No LLM available. Set OPENROUTER_API_KEY env or fix 1P op_loader, or start Ollama.")
             return []
 
-        # Build the batched prompt
         channel_blocks = ""
         for name, msgs in channel_messages.items():
             if msgs.strip():
@@ -171,7 +210,6 @@ class LLMAnalyzer:
         if not channel_blocks.strip():
             return []
 
-        # Use soul doc for voice if available
         effective_role = role
         if not effective_role:
             soul = load_soul(server_name)
@@ -183,10 +221,43 @@ class LLMAnalyzer:
             team_context=team_context or DEFAULT_TEAM_CONTEXT,
         )
 
+        if self.backend == "gemini":
+            return self._call_openrouter(prompt, MODEL_GEMINI_FLASH)
+        if self.backend == "kimi":
+            return self._call_openrouter(prompt, MODEL_KIMI_K2)
         if self.backend == "ollama":
             return self._call_ollama(prompt)
-        else:
-            return self._call_anthropic(prompt)
+        return []
+
+    def _call_openrouter(self, prompt: str, model_id: str) -> list[dict]:
+        """Call OpenRouter chat completions (OpenAI-compat)."""
+        try:
+            resp = requests.post(
+                OPENROUTER_URL,
+                headers={
+                    "Authorization": f"Bearer {self.openrouter_key}",
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "https://github.com/arc-web/discord-manager",
+                    "X-Title": "discord_manager",
+                },
+                json={
+                    "model": model_id,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.3,
+                    "max_tokens": 5000,
+                },
+                timeout=120,
+            )
+            if resp.status_code == 200:
+                content = resp.json()["choices"][0]["message"]["content"]
+                if os.getenv("LLM_DEBUG"):
+                    print(f"\n--- raw {model_id} response ---\n{content}\n--- end ---\n")
+                result = parse_analysis_json(content)
+                return result.get("channels", [])
+            print(f"OpenRouter error {resp.status_code}: {resp.text[:300]}")
+        except Exception as e:
+            print(f"OpenRouter error: {e}")
+        return []
 
     def _call_ollama(self, prompt: str) -> list[dict]:
         """Call Ollama REST API."""
@@ -199,27 +270,11 @@ class LLMAnalyzer:
                     "stream": False,
                     "options": {"temperature": 0.3, "num_predict": 2048},
                 },
-                timeout=120,
+                timeout=600,
             )
             if resp.status_code == 200:
                 result = parse_analysis_json(resp.json().get("response", ""))
                 return result.get("channels", [])
         except Exception as e:
             print(f"Ollama error: {e}")
-        return []
-
-    def _call_anthropic(self, prompt: str) -> list[dict]:
-        """Call Anthropic API."""
-        try:
-            import anthropic
-            client = anthropic.Anthropic(api_key=self.anthropic_key)
-            msg = client.messages.create(
-                model="claude-sonnet-4-6",
-                max_tokens=2048,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            result = parse_analysis_json(msg.content[0].text)
-            return result.get("channels", [])
-        except Exception as e:
-            print(f"Anthropic error: {e}")
         return []
