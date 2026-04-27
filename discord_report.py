@@ -111,11 +111,33 @@ def parse_approval_input(user_input: str, total: int) -> Optional[list[int]]:
 
 
 def main():
-    # Support --server / -s flag
+    # Support --server / -s, --approve, --dry-run, --provider, --task-hint flags (any order)
     server_name = None
+    approve_arg = None
+    dry_run = False
+    provider = "auto"
+    task_hint = "chat"
     args = sys.argv[1:]
-    if args and args[0] in ("-s", "--server") and len(args) > 1:
-        server_name = args[1]
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a in ("-s", "--server") and i + 1 < len(args):
+            server_name = args[i + 1]
+            i += 2
+        elif a == "--approve" and i + 1 < len(args):
+            approve_arg = args[i + 1]
+            i += 2
+        elif a == "--dry-run":
+            dry_run = True
+            i += 1
+        elif a == "--provider" and i + 1 < len(args):
+            provider = args[i + 1]
+            i += 2
+        elif a == "--task-hint" and i + 1 < len(args):
+            task_hint = args[i + 1]
+            i += 2
+        else:
+            i += 1
 
     print("Discord Channel Report")
     print("======================\n")
@@ -126,13 +148,14 @@ def main():
     print(f"  Bot: {discord.bot_id}")
 
     # Init LLM
-    analyzer = LLMAnalyzer()
+    analyzer = LLMAnalyzer(provider=provider, task_hint=task_hint)
     if not analyzer.backend:
         print("\n  ERROR: No LLM available.")
-        print("  - Start Ollama: open /Applications/Ollama.app (or brew install ollama)")
-        print("  - Or set ANTHROPIC_API_KEY in env")
+        print("  - Set OPENROUTER_API_KEY env or fix 1P op_loader (op://Zeroclaw/OpenRouter Key — Claude Code Local/credential)")
+        print("  - Or start Ollama: open /Applications/Ollama.app")
         sys.exit(1)
-    print(f"  LLM: {analyzer.backend}" + (f" ({analyzer.ollama_model})" if analyzer.backend == "ollama" else ""))
+    detail = f" ({analyzer.ollama_model})" if analyzer.backend == "ollama" else ""
+    print(f"  LLM: {analyzer.backend}{detail}")
     channel_map = discord.get_channel_map()
     print(f"\n  Scanning {len(channel_map)} channels...\n")
 
@@ -175,18 +198,28 @@ def main():
         print("  No items need your response. All clear.")
         return
 
-    # Approval loop
-    while True:
-        try:
-            user_input = input("  Send which drafts? (1,3 / all / none): ").strip()
-        except (EOFError, KeyboardInterrupt):
-            print("\n  Cancelled.")
-            return
+    # Approval - non-interactive (--approve / --dry-run) or interactive loop
+    if dry_run:
+        print("  Dry run - no drafts sent.")
+        return
 
-        approved = parse_approval_input(user_input, len(items))
-        if approved is not None:
-            break
-        print(f"  Invalid. Enter numbers 1-{len(items)}, 'all', or 'none'.")
+    if approve_arg is not None:
+        approved = parse_approval_input(approve_arg, len(items))
+        if approved is None:
+            print(f"  Invalid --approve value. Use numbers 1-{len(items)}, 'all', or 'none'.")
+            sys.exit(2)
+    else:
+        while True:
+            try:
+                user_input = input("  Send which drafts? (1,3 / all / none): ").strip()
+            except (EOFError, KeyboardInterrupt):
+                print("\n  Cancelled.")
+                return
+
+            approved = parse_approval_input(user_input, len(items))
+            if approved is not None:
+                break
+            print(f"  Invalid. Enter numbers 1-{len(items)}, 'all', or 'none'.")
 
     if not approved:
         print("  No drafts sent.")
